@@ -2,7 +2,6 @@ import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import {
-  Ticket,
   Calendar,
   MapPin,
   Users as UsersIcon,
@@ -85,39 +84,7 @@ export default function EventDetailPage() {
     (event.registeredUsers / event.totalSeats) * 100;
 
   return (
-    <div className="min-h-screen">
-      {/* Header */}
-      <header className="border-b border-gray-200 bg-white/95 backdrop-blur sticky top-0 z-50">
-        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <Link to="/" className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-              <Ticket className="w-5 h-5 text-white" />
-            </div>
-            <span className="text-xl font-bold">WaitFair</span>
-          </Link>
-          <nav className="hidden md:flex items-center gap-6">
-            <Link
-              to="/events"
-              className="text-sm text-gray-600 hover:text-gray-900 transition-colors"
-            >
-              이벤트
-            </Link>
-            <Link
-              to="/faq"
-              className="text-sm text-gray-600 hover:text-gray-900 transition-colors"
-            >
-              FAQ
-            </Link>
-          </nav>
-          <div className="flex items-center gap-3">
-            <Button variant="ghost" size="sm">
-              로그인
-            </Button>
-          </div>
-        </div>
-      </header>
-
-      {/* Back Button */}
+    <>
       <div className="border-b border-gray-200 bg-gray-50">
         <div className="container mx-auto px-4 py-3">
           <Link
@@ -130,7 +97,6 @@ export default function EventDetailPage() {
         </div>
       </div>
 
-      {/* Hero Image */}
       <div className="relative h-64 md:h-96 bg-gray-200 overflow-hidden">
         <img
           src={event.image}
@@ -151,12 +117,9 @@ export default function EventDetailPage() {
         </div>
       </div>
 
-      {/* Main Content */}
       <div className="container mx-auto px-4 py-8">
         <div className="grid lg:grid-cols-3 gap-8">
-          {/* Left Column - Event Details */}
           <div className="lg:col-span-2 space-y-6">
-            {/* Event Info */}
             <Card className="p-6">
               <h2 className="text-2xl font-bold mb-4">이벤트 정보</h2>
               <div className="space-y-4">
@@ -204,13 +167,11 @@ export default function EventDetailPage() {
               </div>
             </Card>
 
-            {/* Description */}
             <Card className="p-6">
               <h2 className="text-2xl font-bold mb-4">상세 설명</h2>
               <p className="text-gray-700 leading-relaxed">{event.description}</p>
             </Card>
 
-            {/* Price Options */}
             <Card className="p-6">
               <h2 className="text-2xl font-bold mb-4">좌석 및 가격</h2>
               <div className="space-y-3">
@@ -233,7 +194,6 @@ export default function EventDetailPage() {
               </div>
             </Card>
 
-            {/* Notice */}
             <Card className="p-6">
               <h2 className="text-2xl font-bold mb-4">유의사항</h2>
               <ul className="space-y-2">
@@ -247,7 +207,6 @@ export default function EventDetailPage() {
             </Card>
           </div>
 
-          {/* Right Column - Registration Card */}
           <div className="lg:col-span-1">
             <Card className="p-6 sticky top-24">
               <div className="mb-6">
@@ -297,71 +256,6 @@ export default function EventDetailPage() {
           </div>
         </div>
       </div>
-
-      {/* Footer */}
-      <footer className="border-t border-gray-200 py-12 bg-gray-50 mt-12">
-        <div className="container mx-auto px-4">
-          <div className="grid md:grid-cols-4 gap-8">
-            <div>
-              <div className="flex items-center gap-2 mb-4">
-                <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-                  <Ticket className="w-5 h-5 text-white" />
-                </div>
-                <span className="text-lg font-bold">WaitFair</span>
-              </div>
-              <p className="text-sm text-gray-600 leading-relaxed">
-                공정하고 투명한 티켓팅의 새로운 기준
-              </p>
-            </div>
-
-            <div>
-              <h4 className="font-semibold mb-3">제품</h4>
-              <ul className="space-y-2 text-sm text-gray-600">
-                <li>
-                  <Link
-                    to="/events"
-                    className="hover:text-gray-900 transition-colors"
-                  >
-                    이벤트
-                  </Link>
-                </li>
-              </ul>
-            </div>
-
-            <div>
-              <h4 className="font-semibold mb-3">지원</h4>
-              <ul className="space-y-2 text-sm text-gray-600">
-                <li>
-                  <Link
-                    to="/faq"
-                    className="hover:text-gray-900 transition-colors"
-                  >
-                    FAQ
-                  </Link>
-                </li>
-              </ul>
-            </div>
-
-            <div>
-              <h4 className="font-semibold mb-3">회사</h4>
-              <ul className="space-y-2 text-sm text-gray-600">
-                <li>
-                  <a
-                    href="#about"
-                    className="hover:text-gray-900 transition-colors"
-                  >
-                    회사 소개
-                  </a>
-                </li>
-              </ul>
-            </div>
-          </div>
-
-          <div className="mt-8 pt-8 border-t border-gray-200 text-center text-sm text-gray-600">
-            © 2025 WaitFair. All rights reserved.
-          </div>
-        </div>
-      </footer>
-    </div>
+    </>
   );
 }

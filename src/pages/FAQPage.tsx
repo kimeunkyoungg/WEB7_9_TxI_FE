@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
-import { Ticket, ChevronDown } from "lucide-react";
+import { ChevronDown } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { useState } from "react";
 
@@ -84,37 +84,7 @@ function FAQAccordion({ faq, index }: { faq: FAQItem; index: number }) {
 
 export default function FAQPage() {
   return (
-    <div className="min-h-screen">
-      <header className="border-b border-gray-200 bg-white/95 backdrop-blur sticky top-0 z-50">
-        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <Link to="/" className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-              <Ticket className="w-5 h-5 text-white" />
-            </div>
-            <span className="text-xl font-bold">WaitFair</span>
-          </Link>
-          <nav className="hidden md:flex items-center gap-6">
-            <Link
-              to="/events"
-              className="text-sm text-gray-600 hover:text-gray-900 transition-colors"
-            >
-              이벤트
-            </Link>
-            <Link
-              to="/faq"
-              className="text-sm text-blue-600 font-medium transition-colors"
-            >
-              FAQ
-            </Link>
-          </nav>
-          <div className="flex items-center gap-3">
-            <Button variant="ghost" size="sm">
-              로그인
-            </Button>
-          </div>
-        </div>
-      </header>
-
+    <>
       <section className="py-16 bg-gradient-to-br from-blue-50 via-white to-purple-50">
         <div className="container mx-auto px-4">
           <div className="max-w-3xl mx-auto text-center">
@@ -156,110 +126,6 @@ export default function FAQPage() {
           </div>
         </div>
       </section>
-
-      <footer className="border-t border-gray-200 py-12 bg-gray-50">
-        <div className="container mx-auto px-4">
-          <div className="grid md:grid-cols-4 gap-8">
-            <div>
-              <div className="flex items-center gap-2 mb-4">
-                <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-                  <Ticket className="w-5 h-5 text-white" />
-                </div>
-                <span className="text-lg font-bold">WaitFair</span>
-              </div>
-              <p className="text-sm text-gray-600 leading-relaxed">
-                공정하고 투명한 티켓팅의 새로운 기준
-              </p>
-            </div>
-
-            <div>
-              <h4 className="font-semibold mb-3">제품</h4>
-              <ul className="space-y-2 text-sm text-gray-600">
-                <li>
-                  <Link
-                    to="/events"
-                    className="hover:text-gray-900 transition-colors"
-                  >
-                    이벤트
-                  </Link>
-                </li>
-                <li>
-                  <a
-                    href="#pricing"
-                    className="hover:text-gray-900 transition-colors"
-                  >
-                    요금제
-                  </a>
-                </li>
-              </ul>
-            </div>
-
-            <div>
-              <h4 className="font-semibold mb-3">지원</h4>
-              <ul className="space-y-2 text-sm text-gray-600">
-                <li>
-                  <Link
-                    to="/faq"
-                    className="hover:text-gray-900 transition-colors"
-                  >
-                    FAQ
-                  </Link>
-                </li>
-                <li>
-                  <a
-                    href="#support"
-                    className="hover:text-gray-900 transition-colors"
-                  >
-                    고객 지원
-                  </a>
-                </li>
-                <li>
-                  <a
-                    href="#docs"
-                    className="hover:text-gray-900 transition-colors"
-                  >
-                    문서
-                  </a>
-                </li>
-              </ul>
-            </div>
-
-            <div>
-              <h4 className="font-semibold mb-3">회사</h4>
-              <ul className="space-y-2 text-sm text-gray-600">
-                <li>
-                  <a
-                    href="#about"
-                    className="hover:text-gray-900 transition-colors"
-                  >
-                    회사 소개
-                  </a>
-                </li>
-                <li>
-                  <a
-                    href="#contact"
-                    className="hover:text-gray-900 transition-colors"
-                  >
-                    연락처
-                  </a>
-                </li>
-                <li>
-                  <a
-                    href="#privacy"
-                    className="hover:text-gray-900 transition-colors"
-                  >
-                    개인정보처리방침
-                  </a>
-                </li>
-              </ul>
-            </div>
-          </div>
-
-          <div className="mt-8 pt-8 border-t border-gray-200 text-center text-sm text-gray-600">
-            © 2025 WaitFair. All rights reserved.
-          </div>
-        </div>
-      </footer>
-    </div>
+    </>
   );
 }
