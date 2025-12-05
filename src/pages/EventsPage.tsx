@@ -92,54 +92,56 @@ function EventCard({ event }: { event: Event }) {
   };
 
   return (
-    <Card className="overflow-hidden hover:shadow-lg transition-shadow">
-      <div className="aspect-video relative overflow-hidden bg-gray-100">
-        <img
-          src={event.image}
-          alt={event.title}
-          className="w-full h-full object-cover"
-        />
-        <Badge
-          className={`absolute top-3 right-3 ${statusColors[event.status]}`}
-        >
-          {event.status}
-        </Badge>
-      </div>
-      <div className="p-5">
-        <h3 className="text-xl font-bold mb-1">{event.title}</h3>
-        <p className="text-gray-600 text-sm mb-4">{event.artist}</p>
-
-        <div className="space-y-2 mb-4">
-          <div className="flex items-center gap-2 text-sm text-gray-600">
-            <Calendar className="w-4 h-4" />
-            <span>{event.date}</span>
-          </div>
-          <div className="flex items-center gap-2 text-sm text-gray-600">
-            <MapPin className="w-4 h-4" />
-            <span>{event.location}</span>
-          </div>
-          {event.registrationDeadline && (
-            <div className="flex items-center gap-2 text-sm text-gray-600">
-              <UsersIcon className="w-4 h-4" />
-              <span>등록 마감: {event.registrationDeadline}</span>
-            </div>
-          )}
-        </div>
-
-        <div className="flex items-center justify-between">
-          <span className="text-lg font-bold text-blue-600">
-            {event.price}
-          </span>
-          <Button
-            size="sm"
-            disabled={event.status === "마감"}
-            className={event.status === "마감" ? "opacity-50 cursor-not-allowed" : ""}
+    <Link to="/events/$id" params={{ id: String(event.id) }}>
+      <Card className="overflow-hidden hover:shadow-lg transition-shadow cursor-pointer">
+        <div className="aspect-video relative overflow-hidden bg-gray-100">
+          <img
+            src={event.image}
+            alt={event.title}
+            className="w-full h-full object-cover"
+          />
+          <Badge
+            className={`absolute top-3 right-3 ${statusColors[event.status]}`}
           >
-            {event.status === "마감" ? "마감됨" : "사전 등록"}
-          </Button>
+            {event.status}
+          </Badge>
         </div>
-      </div>
-    </Card>
+        <div className="p-5">
+          <h3 className="text-xl font-bold mb-1">{event.title}</h3>
+          <p className="text-gray-600 text-sm mb-4">{event.artist}</p>
+
+          <div className="space-y-2 mb-4">
+            <div className="flex items-center gap-2 text-sm text-gray-600">
+              <Calendar className="w-4 h-4" />
+              <span>{event.date}</span>
+            </div>
+            <div className="flex items-center gap-2 text-sm text-gray-600">
+              <MapPin className="w-4 h-4" />
+              <span>{event.location}</span>
+            </div>
+            {event.registrationDeadline && (
+              <div className="flex items-center gap-2 text-sm text-gray-600">
+                <UsersIcon className="w-4 h-4" />
+                <span>등록 마감: {event.registrationDeadline}</span>
+              </div>
+            )}
+          </div>
+
+          <div className="flex items-center justify-between">
+            <span className="text-lg font-bold text-blue-600">
+              {event.price}
+            </span>
+            <Button
+              size="sm"
+              disabled={event.status === "마감"}
+              className={event.status === "마감" ? "opacity-50 cursor-not-allowed" : ""}
+            >
+              {event.status === "마감" ? "마감됨" : "사전 등록"}
+            </Button>
+          </div>
+        </div>
+      </Card>
+    </Link>
   );
 }
 
