@@ -10,19 +10,19 @@ export default function HomePage() {
       
       <header className="border-b border-gray-200 bg-white/95 backdrop-blur sticky top-0 z-50">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-2">
+          <Link to="/" className="flex items-center gap-2">
             <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
               <Ticket className="w-5 h-5 text-white" />
             </div>
             <span className="text-xl font-bold">WaitFair</span>
-          </div>
+          </Link>
           <nav className="hidden md:flex items-center gap-6">
-            <a href="#events" className="text-sm text-gray-600 hover:text-gray-900 transition-colors">
+            <Link to="/events" className="text-sm text-gray-600 hover:text-gray-900 transition-colors">
               이벤트
-            </a>
-            <a href="#faq" className="text-sm text-gray-600 hover:text-gray-900 transition-colors">
+            </Link>
+            <Link to="/faq" className="text-sm text-gray-600 hover:text-gray-900 transition-colors">
               FAQ
-            </a>
+            </Link>
           </nav>
           <div className="flex items-center gap-3">
             <Button variant="ghost" size="sm">
@@ -49,9 +49,11 @@ export default function HomePage() {
               사전 등록과 랜덤 큐로 속도 경쟁을 없애고, 강화된 보안으로 암표와 위조를 원천 차단합니다.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button size="lg" className="text-base">
-                <Link to="/events">이벤트 둘러보기</Link>
-              </Button>
+              <Link to="/events">
+                <Button size="lg" className="text-base">
+                  이벤트 둘러보기
+                </Button>
+              </Link>
             </div>
           </div>
         </div>
@@ -195,9 +197,11 @@ export default function HomePage() {
           <p className="text-lg text-gray-600 mb-8 max-w-2xl mx-auto">
             암표 걱정 없이, 봇 경쟁 없이, 모두에게 평등한 기회를 제공하는 WaitFair
           </p>
-          <Button size="lg" className="text-base">
-            <Link to="/events">이벤트 둘러보기</Link>
-          </Button>
+          <Link to="/events">
+            <Button size="lg" className="text-base">
+              이벤트 둘러보기
+            </Button>
+          </Link>
         </div>
       </section>
 
@@ -222,11 +226,6 @@ export default function HomePage() {
                     이벤트
                   </Link>
                 </li>
-                <li>
-                  <Link to="/pricing" className="hover:text-gray-900 transition-colors">
-                    요금제
-                  </Link>
-                </li>
               </ul>
             </div>
 
@@ -236,37 +235,6 @@ export default function HomePage() {
                 <li>
                   <Link to="/faq" className="hover:text-gray-900 transition-colors">
                     FAQ
-                  </Link>
-                </li>
-                <li>
-                  <Link to="/support" className="hover:text-gray-900 transition-colors">
-                    고객 지원
-                  </Link>
-                </li>
-                <li>
-                  <Link to="/docs" className="hover:text-gray-900 transition-colors">
-                    문서
-                  </Link>
-                </li>
-              </ul>
-            </div>
-
-            <div>
-              <h4 className="font-semibold mb-3">회사</h4>
-              <ul className="space-y-2 text-sm text-gray-600">
-                <li>
-                  <Link to="/about" className="hover:text-gray-900 transition-colors">
-                    회사 소개
-                  </Link>
-                </li>
-                <li>
-                  <Link to="/contact" className="hover:text-gray-900 transition-colors">
-                    연락처
-                  </Link>
-                </li>
-                <li>
-                  <Link to="/privacy" className="hover:text-gray-900 transition-colors">
-                    개인정보처리방침
                   </Link>
                 </li>
               </ul>
