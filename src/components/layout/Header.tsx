@@ -1,10 +1,13 @@
+import { useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { Ticket } from "lucide-react";
 import { Link, useRouterState } from "@tanstack/react-router";
+import { LoginModal } from "@/components/LoginModal";
 
 export function Header() {
   const router = useRouterState();
   const currentPath = router.location.pathname;
+  const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
 
   const isActive = (path: string) => {
     if (path === "/") {
@@ -45,11 +48,12 @@ export function Header() {
           </Link>
         </nav>
         <div className="flex items-center gap-3">
-          <Button variant="ghost" size="sm">
+          <Button variant="ghost" size="sm" onClick={() => setIsLoginModalOpen(true)}>
             로그인
           </Button>
         </div>
       </div>
+      <LoginModal open={isLoginModalOpen} onOpenChange={setIsLoginModalOpen} />
     </header>
   );
 }
