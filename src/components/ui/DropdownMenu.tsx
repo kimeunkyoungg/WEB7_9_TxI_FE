@@ -42,13 +42,9 @@ export function DropdownMenuTrigger({ asChild, children }: DropdownMenuTriggerPr
   };
 
   if (asChild) {
-    // Clone the child element and add onClick handler
-    const child = children as any;
     return (
       <div onClick={handleClick}>
-        {typeof children === "object" && children !== null && "props" in children
-          ? { ...children, props: { ...children.props, onClick: handleClick } }
-          : children}
+        {children}
       </div>
     );
   }
