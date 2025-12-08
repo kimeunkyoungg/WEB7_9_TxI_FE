@@ -1,13 +1,30 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/Button";
 import { Ticket } from "lucide-react";
-import { Link, useRouterState } from "@tanstack/react-router";
+import { Link, useRouterState, useNavigate } from "@tanstack/react-router";
 import { LoginModal } from "@/components/LoginModal";
+import { NotificationDropdown } from "@/components/NotificationDropdown";
 
 export function Header() {
   const router = useRouterState();
+  const navigate = useNavigate();
   const currentPath = router.location.pathname;
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  useEffect(() => {
+    const user = localStorage.getItem("user");
+    setIsLoggedIn(!!user);
+
+    // Listen for storage changes
+    const handleStorageChange = () => {
+      const user = localStorage.getItem("user");
+      setIsLoggedIn(!!user);
+    };
+
+    window.addEventListener("storage", handleStorageChange);
+    return () => window.removeEventListener("storage", handleStorageChange);
+  }, []);
 
   const isActive = (path: string) => {
     if (path === "/") {
@@ -48,9 +65,38 @@ export function Header() {
           </Link>
         </nav>
         <div className="flex items-center gap-3">
-          <Button variant="ghost" size="sm" onClick={() => setIsLoginModalOpen(true)}>
-            로그인
-          </Button>
+          {isLoggedIn && <NotificationDropdown />}
+          {isLoggedIn ? (
+            <>
+              <Button variant="ghost" size="sm" asChild>
+                <Link to="/my-tickets">내 티켓</Link>
+              </Button>
+              <Button variant="ghost" size="sm" asChild>
+                <Link to="/my-page">마이페이지</Link>
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  localStorage.removeItem("user");
+                  setIsLoggedIn(false);
+                  navigate({ to: "/" });
+                }}
+              >
+                로그아웃
+              </Button>
+            </>
+          ) : (
+            <>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setIsLoginModalOpen(true)}
+              >
+                로그인
+              </Button>
+            </>
+          )}
         </div>
       </div>
       <LoginModal open={isLoginModalOpen} onOpenChange={setIsLoginModalOpen} />

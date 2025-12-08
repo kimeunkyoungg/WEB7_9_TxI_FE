@@ -36,10 +36,12 @@ export function LoginModal({ open, onOpenChange }: LoginModalProps) {
           id: "1",
         };
         localStorage.setItem("user", JSON.stringify(user));
+
+        // Trigger storage event to update header
+        window.dispatchEvent(new Event("storage"));
+
         setIsLoading(false);
         onOpenChange(false);
-        // 페이지 새로고침하여 로그인 상태 반영
-        window.location.reload();
       }, 1000);
     },
   });

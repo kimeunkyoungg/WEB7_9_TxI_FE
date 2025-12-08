@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/Label";
 import { Checkbox } from "@/components/ui/Checkbox";
 import { Ticket, CheckCircle2, Shield, ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
+import { addNotification } from "@/components/NotificationDropdown";
 
 export default function PreRegistrationPage() {
   const navigate = useNavigate();
@@ -40,6 +41,14 @@ export default function PreRegistrationPage() {
     // Simulate API call
     setTimeout(() => {
       localStorage.setItem(`preRegistered_${id}`, "true");
+
+      addNotification({
+        type: "registration",
+        title: "사전등록 완료",
+        message:
+          "사전등록이 완료되었습니다. 티켓팅 시작일에 알림을 보내드리겠습니다.",
+        timestamp: new Date().toLocaleString("ko-KR"),
+      });
 
       toast.success(
         "사전등록 완료! 티켓팅 시작일에 대기열에 입장하실 수 있습니다."
