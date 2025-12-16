@@ -73,7 +73,8 @@ export default function PreRegistrationPage() {
 
       <main className="container mx-auto px-4 py-8 max-w-2xl">
         <Link
-          to={`/events/${id}`}
+          to="/events/$id"
+          params={{ id }}
           className="inline-flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900 mb-6 transition-colors"
         >
           <ArrowLeft className="w-4 h-4" />
