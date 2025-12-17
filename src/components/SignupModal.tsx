@@ -27,7 +27,7 @@ export function SignupModal({ open, onOpenChange }: Props) {
 
   const form = useForm({
     defaultValues: {
-      name: '',
+      fullName: '',
       email: '',
       nickname: '',
       birthDate: '',
@@ -35,15 +35,26 @@ export function SignupModal({ open, onOpenChange }: Props) {
       passwordConfirm: '',
     },
     onSubmit: async ({ value }) => {
-      signupMutation.mutate(value as SignupRequest, {
+      const [year, month, day] = value.birthDate.split('-')
+
+      const signupData: SignupRequest = {
+        email: value.email,
+        password: value.password,
+        fullName: value.fullName,
+        nickname: value.nickname,
+        year,
+        month,
+        day,
+      }
+
+      signupMutation.mutate(signupData, {
         onSuccess: () => {
           toast.success('회원가입이 완료되었습니다. 로그인해주세요.')
           form.reset()
           onOpenChange(false)
         },
-        onError: (error: any) => {
-          const message = error.response?.data?.message || '회원가입에 실패했습니다.'
-          toast.error(message)
+        onError: (error: Error) => {
+          toast.error(error.message)
         },
       })
     },
@@ -67,10 +78,10 @@ export function SignupModal({ open, onOpenChange }: Props) {
           className="space-y-4 mt-4"
         >
           <form.Field
-            name="name"
+            name="fullName"
             validators={{
               onChange: ({ value }) => {
-                const result = signupFormSchema.shape.name.safeParse(value)
+                const result = signupFormSchema.shape.fullName.safeParse(value)
                 return result.success ? undefined : result.error.message
               },
             }}
