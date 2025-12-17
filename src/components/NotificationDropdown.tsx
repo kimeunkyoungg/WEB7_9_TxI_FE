@@ -23,7 +23,6 @@ export function NotificationDropdown() {
   const [unreadCount, setUnreadCount] = useState(0)
 
   useEffect(() => {
-    // Load notifications from localStorage
     const stored = localStorage.getItem('notifications')
     if (stored) {
       const parsed = JSON.parse(stored)
@@ -31,7 +30,6 @@ export function NotificationDropdown() {
       setUnreadCount(parsed.filter((n: Notification) => !n.read).length)
     }
 
-    // Listen for storage events
     const handleStorageChange = () => {
       const stored = localStorage.getItem('notifications')
       if (stored) {
@@ -88,7 +86,7 @@ export function NotificationDropdown() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="sm" className="relative">
+        <Button variant="ghost" size="sm" className="relative cursor-pointer">
           <Bell className="w-5 h-5" />
           {unreadCount > 0 && (
             <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-600 text-white text-xs rounded-full flex items-center justify-center">
@@ -147,21 +145,3 @@ export function NotificationDropdown() {
     </DropdownMenu>
   )
 }
-
-export function addNotification(notification: Omit<Notification, 'id' | 'read'>) {
-  const stored = localStorage.getItem('notifications')
-  const existing = stored ? JSON.parse(stored) : []
-
-  const newNotification = {
-    ...notification,
-    id: Date.now().toString(),
-    read: false,
-  }
-
-  const updated = [newNotification, ...existing].slice(0, 50) // Keep last 50 notifications
-  localStorage.setItem('notifications', JSON.stringify(updated))
-
-  window.dispatchEvent(new Event('storage'))
-}
-
-export default NotificationDropdown

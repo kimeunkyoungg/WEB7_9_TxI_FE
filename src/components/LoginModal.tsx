@@ -23,7 +23,7 @@ interface LoginModalProps {
 }
 
 export function LoginModal({ open, onOpenChange }: LoginModalProps) {
-  const setUser = useAuthStore((state) => state.setUser)
+  const { setUser, setAccessToken } = useAuthStore()
 
   const loginMutation = useMutation({
     mutationFn: authApi.login,
@@ -36,16 +36,18 @@ export function LoginModal({ open, onOpenChange }: LoginModalProps) {
     },
     onSubmit: async ({ value }) => {
       loginMutation.mutate(value as LoginRequest, {
-        onSuccess: async () => {
-          const user = await userApi.getUserProfile()
-          setUser(user)
+        onSuccess: async (response) => {
+          setAccessToken(response.data.tokens.accessToken)
+
           form.reset()
           toast.success('로그인되었습니다.')
 
+          const { data } = await userApi.getUserProfile()
+          setUser(data)
           onOpenChange(false)
         },
         onError: (error) => {
-          toast.error(error.message || '로그인에 실패했습니다.')
+          toast.error(error.message)
         },
       })
     },
@@ -73,7 +75,7 @@ export function LoginModal({ open, onOpenChange }: LoginModalProps) {
             validators={{
               onChange: ({ value }) => {
                 const result = loginFormSchema.shape.email.safeParse(value)
-                return result.success ? undefined : result.error.message
+                return result.success ? undefined : result.error.issues[0]?.message
               },
             }}
           >
@@ -96,7 +98,7 @@ export function LoginModal({ open, onOpenChange }: LoginModalProps) {
             validators={{
               onChange: ({ value }) => {
                 const result = loginFormSchema.shape.password.safeParse(value)
-                return result.success ? undefined : result.error.message
+                return result.success ? undefined : result.error.issues[0]?.message
               },
             }}
           >

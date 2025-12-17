@@ -1,3 +1,4 @@
+import { useAuthStore } from '@/stores/authStore'
 import axios, { type AxiosError, type InternalAxiosRequestConfig } from 'axios'
 
 export const apiClient = axios.create({
@@ -11,6 +12,10 @@ export const apiClient = axios.create({
 
 apiClient.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
+    const accessToken = useAuthStore.getState().accessToken
+    if (accessToken) {
+      config.headers.Authorization = `Bearer ${accessToken}`
+    }
     return config
   },
   (error: AxiosError) => {
@@ -22,20 +27,9 @@ apiClient.interceptors.response.use(
   (response) => {
     return response
   },
-  async (error: AxiosError) => {
-    const originalRequest = error.config as any
-
-    if (error.response?.status === 401 && !originalRequest._retry) {
-      originalRequest._retry = true
-
-      try {
-        await apiClient.post('/auth/refresh')
-
-        return apiClient(originalRequest)
-      } catch (refreshError) {
-        window.dispatchEvent(new CustomEvent('auth:logout'))
-        return Promise.reject(refreshError)
-      }
+  async (error: AxiosError<{ status: string; message: string; data?: unknown }>) => {
+    if (error.response?.data?.message) {
+      return Promise.reject(new Error(error.response.data.message))
     }
 
     return Promise.reject(error)

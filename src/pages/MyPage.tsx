@@ -1,9 +1,12 @@
+import { authApi } from '@/api/auth'
 import { userApi } from '@/api/user'
+import { PasswordConfirmModal } from '@/components/PasswordConfirmModal'
 import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
 import { Input } from '@/components/ui/Input'
 import { Label } from '@/components/ui/Label'
 import { useAuthStore } from '@/stores/authStore'
+import type { UpdateUserRequest } from '@/types/user'
 import { updateUserFormSchema } from '@/utils/validation'
 import { useForm } from '@tanstack/react-form'
 import { useMutation, useQueryClient, useSuspenseQuery } from '@tanstack/react-query'
@@ -19,6 +22,7 @@ export default function MyPage() {
   const { clearUser, updateUser } = useAuthStore()
 
   const [isEditing, setIsEditing] = useState(false)
+  const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false)
 
   const { data: userData } = useSuspenseQuery({
     queryKey: ['user', 'me'],
@@ -27,12 +31,26 @@ export default function MyPage() {
 
   const defaultFormValues = useMemo(
     () => ({
-      name: userData.data.fullName,
+      fullName: userData.data.fullName,
       nickname: userData.data.nickname,
       birthDate: userData.data.birthDate,
     }),
     [userData],
   )
+
+  const verifyPasswordMutation = useMutation({
+    mutationFn: authApi.verifyPassword,
+    onSuccess: () => {
+      setIsPasswordModalOpen(false)
+      form.setFieldValue('fullName', userData.data.fullName)
+      form.setFieldValue('nickname', userData.data.nickname)
+      form.setFieldValue('birthDate', userData.data.birthDate)
+      setIsEditing(true)
+    },
+    onError: (error: Error) => {
+      toast.error(error.message)
+    },
+  })
 
   const updateMutation = useMutation({
     mutationFn: userApi.updateUserProfile,
@@ -41,6 +59,9 @@ export default function MyPage() {
       queryClient.invalidateQueries({ queryKey: ['user', 'me'] })
       toast.success('정보가 수정되었습니다.')
       setIsEditing(false)
+      form.setFieldValue('fullName', data.fullName)
+      form.setFieldValue('nickname', data.nickname)
+      form.setFieldValue('birthDate', data.birthDate)
     },
     onError: (error: Error) => {
       toast.error(error.message)
@@ -50,7 +71,16 @@ export default function MyPage() {
   const form = useForm({
     defaultValues: defaultFormValues,
     onSubmit: async ({ value }) => {
-      updateMutation.mutate(value)
+      const [year, month, day] = value.birthDate.split('-')
+
+      const updateData: UpdateUserRequest = {
+        fullName: value.fullName,
+        nickname: value.nickname,
+        year,
+        month,
+        day,
+      }
+      updateMutation.mutate(updateData)
     },
   })
 
@@ -66,17 +96,14 @@ export default function MyPage() {
     },
   })
 
-  const enterEditMode = () => {
-    form.setFieldValue('name', userData.name)
-    form.setFieldValue('nickname', userData.nickname)
-    form.setFieldValue('birthDate', userData.birthDate)
-    setIsEditing(true)
+  const handlePasswordConfirm = (password: string) => {
+    verifyPasswordMutation.mutate({ password })
   }
 
-  const cancelEdit = () => {
-    form.setFieldValue('name', userData.name)
-    form.setFieldValue('nickname', userData.nickname)
-    form.setFieldValue('birthDate', userData.birthDate)
+  const handleCancelEdit = () => {
+    form.setFieldValue('fullName', userData.data.fullName)
+    form.setFieldValue('nickname', userData.data.nickname)
+    form.setFieldValue('birthDate', userData.data.birthDate)
     setIsEditing(false)
   }
 
@@ -98,8 +125,8 @@ export default function MyPage() {
               <User className="w-10 h-10 text-white" />
             </div>
             <div>
-              <h2 className="text-2xl font-bold">{userData.name}</h2>
-              <p className="text-gray-600">{userData.email}</p>
+              <h2 className="text-2xl font-bold">{userData.data.fullName}</h2>
+              <p className="text-gray-600">{userData.data.fullName}</p>
             </div>
           </div>
 
@@ -107,32 +134,32 @@ export default function MyPage() {
             <div className="space-y-4">
               <div className="space-y-2">
                 <Label>이름</Label>
-                <Input value={userData.name} disabled />
+                <Input value={userData.data.fullName} disabled />
               </div>
 
               <div className="space-y-2">
                 <Label>이메일</Label>
                 <div className="flex items-center gap-2">
                   <Mail className="w-4 h-4 text-gray-600" />
-                  <Input value={userData.email} disabled />
+                  <Input value={userData.data.email} disabled />
                 </div>
               </div>
 
               <div className="space-y-2">
                 <Label>닉네임</Label>
-                <Input value={userData.nickname} disabled />
+                <Input value={userData.data.nickname} disabled />
               </div>
 
               <div className="space-y-2">
                 <Label>생년월일</Label>
-                <Input value={userData.birthDate} disabled />
+                <Input value={userData.data.birthDate} disabled />
               </div>
 
               <div className="space-y-2">
                 <Label>가입일</Label>
                 <div className="flex items-center gap-2">
                   <Calendar className="w-4 h-4 text-gray-600" />
-                  <Input value={dayjs(userData.createdAt).format('YYYY-MM-DD')} disabled />
+                  <Input value={dayjs(userData.data.signupDate).format('YYYY-MM-DD')} disabled />
                 </div>
               </div>
             </div>
@@ -146,10 +173,10 @@ export default function MyPage() {
               className="space-y-4"
             >
               <form.Field
-                name="name"
+                name="fullName"
                 validators={{
                   onChange: ({ value }) => {
-                    const result = updateUserFormSchema.shape.name.safeParse(value)
+                    const result = updateUserFormSchema.shape.fullName.safeParse(value)
                     return result.success ? undefined : result.error.message
                   },
                 }}
@@ -171,7 +198,7 @@ export default function MyPage() {
                 <Label>이메일</Label>
                 <div className="flex items-center gap-2">
                   <Mail className="w-4 h-4 text-gray-600" />
-                  <Input value={userData.email} disabled />
+                  <Input value={userData.data.email} disabled />
                 </div>
               </div>
 
@@ -223,7 +250,7 @@ export default function MyPage() {
                 <Label>가입일</Label>
                 <div className="flex items-center gap-2">
                   <Calendar className="w-4 h-4 text-gray-600" />
-                  <Input value={dayjs(userData.createdAt).format('YYYY-MM-DD')} disabled />
+                  <Input value={dayjs(userData.data.signupDate).format('YYYY-MM-DD')} disabled />
                 </div>
               </div>
 
@@ -232,7 +259,7 @@ export default function MyPage() {
                   type="button"
                   variant="outline"
                   className="flex-1"
-                  onClick={cancelEdit}
+                  onClick={handleCancelEdit}
                   disabled={updateMutation.isPending}
                 >
                   취소
@@ -257,7 +284,11 @@ export default function MyPage() {
           <h3 className="text-xl font-bold mb-4">계정 설정</h3>
           <div className="space-y-3">
             {!isEditing ? (
-              <Button variant="outline" className="w-full justify-start" onClick={enterEditMode}>
+              <Button
+                variant="outline"
+                className="w-full justify-start"
+                onClick={() => setIsPasswordModalOpen(true)}
+              >
                 내 정보 수정
               </Button>
             ) : (
@@ -284,6 +315,15 @@ export default function MyPage() {
           </div>
         </Card>
       </main>
+
+      <PasswordConfirmModal
+        open={isPasswordModalOpen}
+        onOpenChange={setIsPasswordModalOpen}
+        onConfirm={handlePasswordConfirm}
+        title="비밀번호 확인"
+        description="정보 수정을 위해 비밀번호를 입력해주세요."
+        isLoading={verifyPasswordMutation.isPending}
+      />
     </div>
   )
 }
