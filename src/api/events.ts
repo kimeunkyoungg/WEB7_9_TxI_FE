@@ -33,4 +33,18 @@ export const eventsApi = {
 
     return response.data
   },
+
+  getEventById: async (eventId: string): Promise<ApiResponse<Event>> => {
+    const response = await apiClient.get<ApiResponse<Event>>(`/events/${eventId}`)
+
+    if (response.data.status === '404 NOT_FOUND') {
+      throw Error(response.data.message)
+    }
+
+    if (response.data.status === '500 INTERNAL_SERVER_ERROR') {
+      throw Error(response.data.message)
+    }
+
+    return response.data
+  },
 }

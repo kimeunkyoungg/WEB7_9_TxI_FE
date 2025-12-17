@@ -5,6 +5,7 @@ export interface Event {
   id: number
   title: string
   category: EventCategory
+  description?: string
   place: string
   imageUrl: string
   minPrice: number
@@ -12,8 +13,10 @@ export interface Event {
   preOpenAt: string
   preCloseAt: string
   ticketOpenAt: string
+  ticketCloseAt?: string
+  maxTicketAmount?: number
   status: EventStatus
-  createdAt: string
+  createdAt?: string
 }
 
 export interface PageableRequest {
