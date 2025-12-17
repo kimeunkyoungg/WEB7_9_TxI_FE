@@ -18,7 +18,7 @@ import {
 } from 'lucide-react'
 
 export default function MyTicketDetailPage() {
-  const { ticketId } = useParams({ from: '/tickets/$ticketId' })
+  const { ticketId } = useParams({ from: '/my-tickets/$ticketId' })
 
   const { data } = useSuspenseQuery({
     queryKey: ['ticket', ticketId],
@@ -35,7 +35,7 @@ export default function MyTicketDetailPage() {
       <div className="border-b border-gray-200 bg-gray-50">
         <div className="container mx-auto px-4 py-3">
           <Link
-            to="/tickets"
+            to="/my-tickets"
             className="inline-flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900 transition-colors"
           >
             <ArrowLeft className="w-4 h-4" />내 티켓 목록으로

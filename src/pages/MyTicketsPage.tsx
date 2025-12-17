@@ -73,7 +73,7 @@ export default function MyTicketsPage() {
                       <div className="flex gap-3">
                         <Button className="flex-1" asChild>
                           <Link
-                            to="/tickets/$ticketId"
+                            to="/my-tickets/$ticketId"
                             params={{ ticketId: String(ticket.ticketId) }}
                           >
                             티켓 상세보기
@@ -128,7 +128,7 @@ export default function MyTicketsPage() {
                       <div className="flex gap-3">
                         <Button variant="outline" className="flex-1" asChild>
                           <Link
-                            to="/tickets/$ticketId"
+                            to="/my-tickets/$ticketId"
                             params={{ ticketId: String(ticket.ticketId) }}
                           >
                             티켓 상세보기
