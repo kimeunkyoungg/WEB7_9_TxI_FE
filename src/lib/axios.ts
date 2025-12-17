@@ -29,8 +29,6 @@ apiClient.interceptors.response.use(
       originalRequest._retry = true
 
       try {
-        await apiClient.post('/auth/refresh')
-
         return apiClient(originalRequest)
       } catch (refreshError) {
         window.dispatchEvent(new CustomEvent('auth:logout'))
