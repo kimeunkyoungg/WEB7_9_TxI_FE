@@ -1,3 +1,4 @@
+import { notificationApi } from '@/api/notifications'
 import { getWebSocketClient } from '@/lib/websocket'
 import { useAuthStore } from '@/stores/authStore'
 import {
@@ -5,7 +6,8 @@ import {
   type NotificationDTO,
   mapNotificationDTOToNotification,
 } from '@/types/notification'
-import { useEffect, useState } from 'react'
+import { useMutation } from '@tanstack/react-query'
+import { useCallback, useEffect, useState } from 'react'
 
 const WS_URL = import.meta.env.VITE_WS_URL || 'https://api.waitfair.shop/ws'
 const NOTIFICATION_DESTINATION = '/user/notifications'
@@ -14,6 +16,8 @@ export function useNotifications() {
   const [notifications, setNotifications] = useState<Notification[]>([])
   const [unreadCount, setUnreadCount] = useState(0)
   const [isConnected, setIsConnected] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState<Error | null>(null)
   const { accessToken, isAuthenticated } = useAuthStore()
 
   useEffect(() => {
@@ -23,9 +27,22 @@ export function useNotifications() {
 
     const wsClient = getWebSocketClient(WS_URL, () => accessToken)
 
-    const handleConnect = () => {
-      console.log('Notification WebSocket connected')
+    const handleConnect = async () => {
       setIsConnected(true)
+      setError(null)
+
+      try {
+        setIsLoading(true)
+        const response = await notificationApi.getNotifications()
+        const notificationList = response.data.map(mapNotificationDTOToNotification)
+
+        setNotifications(notificationList)
+        setUnreadCount(notificationList.filter((n) => !n.read).length)
+      } catch (err) {
+        setError(err as Error)
+      } finally {
+        setIsLoading(false)
+      }
 
       wsClient.subscribe(NOTIFICATION_DESTINATION, (message) => {
         try {
@@ -37,80 +54,90 @@ export function useNotifications() {
           if (!notification.read) {
             setUnreadCount((prev) => prev + 1)
           }
-
-          const stored = localStorage.getItem('notifications')
-          const existingNotifications: Notification[] = stored ? JSON.parse(stored) : []
-          const updated = [notification, ...existingNotifications]
-          localStorage.setItem('notifications', JSON.stringify(updated))
-
-          console.log('New notification received:', notification)
-        } catch (error) {
-          console.error('Failed to parse notification:', error)
+        } catch (err) {
+          setError(err as Error)
         }
       })
     }
 
-    const handleError = (error: Error) => {
-      console.error('Notification WebSocket error:', error)
+    const handleError = (err: Error) => {
       setIsConnected(false)
+      setError(err)
     }
 
     wsClient.connect(handleConnect, handleError)
 
-    const stored = localStorage.getItem('notifications')
-    if (stored) {
-      const parsed = JSON.parse(stored)
-      setNotifications(parsed)
-      setUnreadCount(parsed.filter((n: Notification) => !n.read).length)
-    }
-
-    const handleStorageChange = () => {
-      const stored = localStorage.getItem('notifications')
-      if (stored) {
-        const parsed = JSON.parse(stored)
-        setNotifications(parsed)
-        setUnreadCount(parsed.filter((n: Notification) => !n.read).length)
-      }
-    }
-
-    window.addEventListener('storage', handleStorageChange)
-
     return () => {
       wsClient.unsubscribe(NOTIFICATION_DESTINATION)
-      window.removeEventListener('storage', handleStorageChange)
     }
   }, [isAuthenticated, accessToken])
 
-  const markAsRead = (id: string) => {
-    setNotifications((prev) => {
-      const updated = prev.map((n) => (n.id === id ? { ...n, read: true } : n))
-      localStorage.setItem('notifications', JSON.stringify(updated))
-      setUnreadCount(updated.filter((n) => !n.read).length)
-      return updated
-    })
-  }
+  const markAsReadMutation = useMutation({
+    mutationFn: notificationApi.markAsRead,
+    onMutate: async (id) => {
+      setNotifications((prev) => {
+        const updated = prev.map((n) => (n.id === id ? { ...n, read: true } : n))
+        setUnreadCount(updated.filter((n) => !n.read).length)
+        return updated
+      })
+    },
+    onError: (err, id) => {
+      setError(err as Error)
 
-  const markAllAsRead = () => {
-    setNotifications((prev) => {
-      const updated = prev.map((n) => ({ ...n, read: true }))
-      localStorage.setItem('notifications', JSON.stringify(updated))
+      setNotifications((prev) => {
+        const updated = prev.map((n) => (n.id === id ? { ...n, read: false } : n))
+        setUnreadCount(updated.filter((n) => !n.read).length)
+        return updated
+      })
+    },
+  })
+
+  const markAllAsReadMutation = useMutation({
+    mutationFn: notificationApi.markAllAsRead,
+    onMutate: async () => {
+      const previousNotifications = notifications
+      const previousUnreadCount = unreadCount
+
+      setNotifications((prev) => prev.map((n) => ({ ...n, read: true })))
       setUnreadCount(0)
-      return updated
-    })
-  }
 
-  const clearAllNotifications = () => {
-    setNotifications([])
-    setUnreadCount(0)
-    localStorage.removeItem('notifications')
-  }
+      return { previousNotifications, previousUnreadCount }
+    },
+    onError: (err, _variables, context) => {
+      setError(err as Error)
+
+      if (context) {
+        setNotifications(context.previousNotifications)
+        setUnreadCount(context.previousUnreadCount)
+      }
+    },
+  })
+
+  const markAsRead = useCallback(
+    (id: string) => {
+      markAsReadMutation.mutate(id)
+    },
+    [markAsReadMutation],
+  )
+
+  const markAllAsRead = useCallback(() => {
+    markAllAsReadMutation.mutate()
+  }, [markAllAsReadMutation])
+
+  const clearError = useCallback(() => {
+    setError(null)
+  }, [])
 
   return {
     notifications,
     unreadCount,
     isConnected,
+    isLoading,
+    error,
     markAsRead,
     markAllAsRead,
-    clearAllNotifications,
+    clearError,
+    isMarkingAsRead: markAsReadMutation.isPending,
+    isMarkingAllAsRead: markAllAsReadMutation.isPending,
   }
 }
