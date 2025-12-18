@@ -18,9 +18,10 @@ import { toast } from 'sonner'
 interface Props {
   open: boolean
   onOpenChange: (open: boolean) => void
+  onOpenLoginChange: (open: boolean) => void
 }
 
-export function SignupModal({ open, onOpenChange }: Props) {
+export function SignupModal({ open, onOpenChange, onOpenLoginChange }: Props) {
   const signupMutation = useMutation({
     mutationFn: authApi.signup,
   })
@@ -244,13 +245,13 @@ export function SignupModal({ open, onOpenChange }: Props) {
         </form>
 
         <div className="mt-4 text-center text-sm text-gray-600">
-          이미 계정이 있으신가요?{' '}
+          이미 계정이 있으신가요?
           <button
             type="button"
-            className="text-blue-600 hover:underline font-medium"
+            className="text-blue-600 hover:underline font-medium cursor-pointer ml-1"
             onClick={() => {
               onOpenChange(false)
-              window.dispatchEvent(new CustomEvent('openLoginModal'))
+              onOpenLoginChange(true)
             }}
           >
             로그인

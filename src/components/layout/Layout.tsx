@@ -1,7 +1,7 @@
-import { PageErrorFallback } from '@/components/common/ErrorFallback'
-import { LoadingFallback } from '@/components/common/LoadingFallback'
 import { LoginModal } from '@/components/LoginModal'
 import { SignupModal } from '@/components/SignupModal'
+import { PageErrorFallback } from '@/components/common/ErrorFallback'
+import { LoadingFallback } from '@/components/common/LoadingFallback'
 import { type ReactNode, Suspense, useState } from 'react'
 import { ErrorBoundary } from 'react-error-boundary'
 import { Footer } from './Footer'
@@ -28,7 +28,11 @@ export function Layout({ children }: LayoutProps) {
       </main>
       <Footer />
       <LoginModal open={isLoginModalOpen} onOpenChange={setIsLoginModalOpen} />
-      <SignupModal open={isSignupModalOpen} onOpenChange={setIsSignupModalOpen} />
+      <SignupModal
+        open={isSignupModalOpen}
+        onOpenChange={setIsSignupModalOpen}
+        onOpenLoginChange={setIsLoginModalOpen}
+      />
     </div>
   )
 }
