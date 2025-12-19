@@ -1,16 +1,23 @@
+import { useState } from 'react'
 import { eventsApi } from '@/api/events'
+import { PreRegisterSuccessModal } from '@/components/PreRegisterSuccessModal'
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
 import { Progress } from '@/components/ui/Progress'
+import { useAuthStore } from '@/stores/authStore'
 import { formatDateTime, formatPriceRange } from '@/utils/format'
 import { getStatusText } from '@/utils/getStatusText'
-import { useSuspenseQuery } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient, useSuspenseQuery } from '@tanstack/react-query'
 import { Link, useParams } from '@tanstack/react-router'
 import { ArrowLeft, Calendar, Clock, MapPin, Shield, Tag } from 'lucide-react'
+import { toast } from 'sonner'
 
 export default function EventDetailPage() {
   const { id } = useParams({ from: '/events/$id' })
+  const { isAuthenticated } = useAuthStore()
+  const queryClient = useQueryClient()
+  const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false)
 
   const { data } = useSuspenseQuery({
     queryKey: ['event', id],
@@ -22,12 +29,41 @@ export default function EventDetailPage() {
     queryFn: () => eventsApi.getPreRegisterCount(id),
   })
 
+  const { data: preRegisterStatusData } = useQuery({
+    queryKey: ['event', id, 'pre-register-status'],
+    queryFn: () => eventsApi.getPreRegisterStatus(id),
+    enabled: isAuthenticated,
+  })
+
+  const preRegisterMutation = useMutation({
+    mutationFn: () => eventsApi.createPreRegister(id),
+  })
+
   const event = data.data
   const preRegisterCount = preRegisterCountData.data
+  const isRegistered = preRegisterStatusData?.data ?? false
 
   const ticketDateTime = formatDateTime(event.ticketOpenAt)
   const preOpenDateTime = formatDateTime(event.preOpenAt)
   const preCloseDateTime = formatDateTime(event.preCloseAt)
+
+  const handlePreRegister = () => {
+    if (!isAuthenticated) {
+      toast.error('로그인 후 이용해주세요.')
+      return
+    }
+
+    preRegisterMutation.mutate(undefined, {
+      onSuccess: () => {
+        setIsSuccessModalOpen(true)
+        queryClient.invalidateQueries({ queryKey: ['event', id, 'pre-register-status'] })
+        queryClient.invalidateQueries({ queryKey: ['event', id, 'pre-register-count'] })
+      },
+      onError: (error) => {
+        toast.error(error.message)
+      },
+    })
+  }
 
   return (
     <>
@@ -123,10 +159,17 @@ export default function EventDetailPage() {
                 className="mb-6"
                 title="사전 등록 진행률"
               />
-              <Button className="w-full mb-3" size="lg" asChild>
-                <Link to="/events/$id/register" params={{ id }}>
-                  사전 등록하기
-                </Link>
+              <Button
+                className="w-full mb-3"
+                size="lg"
+                onClick={handlePreRegister}
+                disabled={preRegisterMutation.isPending}
+              >
+                {preRegisterMutation.isPending
+                  ? '처리 중...'
+                  : isRegistered
+                    ? '사전등록 취소'
+                    : '사전 등록하기'}
               </Button>
               <Button variant="outline" className="w-full">
                 알림 받기
@@ -141,6 +184,12 @@ export default function EventDetailPage() {
           </div>
         </div>
       </div>
+
+      <PreRegisterSuccessModal
+        open={isSuccessModalOpen}
+        onOpenChange={setIsSuccessModalOpen}
+        eventTitle={event.title}
+      />
     </>
   )
 }

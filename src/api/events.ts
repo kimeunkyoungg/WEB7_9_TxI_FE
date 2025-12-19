@@ -1,6 +1,7 @@
 import { apiClient } from '@/lib/axios'
 import type { ApiResponse } from '@/types/api'
 import type { Event, GetEventsParams, PageResponse } from '@/types/event'
+import type { PreRegister } from '@/types/preRegister'
 
 export const eventsApi = {
   getEvents: async (params: GetEventsParams): Promise<ApiResponse<PageResponse<Event>>> => {
@@ -52,6 +53,46 @@ export const eventsApi = {
     const response = await apiClient.get<ApiResponse<number>>(
       `/events/${eventId}/pre-registers/count`,
     )
+
+    if (response.data.status === '404 NOT_FOUND') {
+      throw Error(response.data.message)
+    }
+
+    if (response.data.status === '500 INTERNAL_SERVER_ERROR') {
+      throw Error(response.data.message)
+    }
+
+    return response.data
+  },
+
+  getPreRegisterStatus: async (eventId: string): Promise<ApiResponse<boolean>> => {
+    const response = await apiClient.get<ApiResponse<boolean>>(
+      `/events/${eventId}/pre-registers/status`,
+    )
+
+    if (response.data.status === '401 UNAUTHORIZED') {
+      throw Error(response.data.message)
+    }
+
+    if (response.data.status === '500 INTERNAL_SERVER_ERROR') {
+      throw Error(response.data.message)
+    }
+
+    return response.data
+  },
+
+  createPreRegister: async (eventId: string): Promise<ApiResponse<PreRegister>> => {
+    const response = await apiClient.post<ApiResponse<PreRegister>>(
+      `/events/${eventId}/pre-registers`,
+    )
+
+    if (response.data.status === '400 BAD_REQUEST') {
+      throw Error(response.data.message)
+    }
+
+    if (response.data.status === '401 UNAUTHORIZED') {
+      throw Error(response.data.message)
+    }
 
     if (response.data.status === '404 NOT_FOUND') {
       throw Error(response.data.message)
