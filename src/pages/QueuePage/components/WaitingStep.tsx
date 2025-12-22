@@ -24,7 +24,7 @@ export function WaitingStep({
     setError(null)
 
     try {
-      await queueApi.processUntilMe(eventId)
+      await queueApi.processIncludeMe(eventId)
       await queryClient.invalidateQueries({ queryKey: ['queueStatus', eventId] })
       onProcessComplete()
     } catch (err) {

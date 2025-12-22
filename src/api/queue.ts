@@ -35,7 +35,7 @@ export const queueApi = {
     return response.data
   },
 
-  processUntilMe: async (
+  processIncludeMe: async (
     eventId: string,
   ): Promise<
     ApiResponse<{
@@ -50,7 +50,7 @@ export const queueApi = {
         processedCount: number
         remainingWaitingCount: number
       }>
-    >(`/queues/${eventId}/process-until-me`)
+    >(`/queues/${eventId}/process-include-me`)
 
     if (response.data.status === '400 BAD_REQUEST') {
       throw Error(response.data.message)
