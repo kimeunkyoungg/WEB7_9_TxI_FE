@@ -22,7 +22,6 @@ export default function QueuePage() {
     queryFn: () => queueApi.getQueueStatus(id),
   })
 
-  // API 응답의 status에 따라 초기 step 설정
   const getInitialStep = (): QueueStep => {
     const status = queueData.data.status
     switch (status) {
@@ -66,7 +65,6 @@ export default function QueuePage() {
     navigate({ to: '/events' })
   })
 
-  // API 응답의 status가 변경되면 step 업데이트
   useEffect(() => {
     const status = queueData.data.status
     if (status === 'WAITING' && step !== 'waiting' && step !== 'purchase' && step !== 'payment') {
@@ -81,7 +79,6 @@ export default function QueuePage() {
     }
   }, [queueData.data.status, step, navigate, start])
 
-  // WebSocket 이벤트 처리
   useEffect(() => {
     if (personalEvent) {
       if ('enteredAt' in personalEvent) {

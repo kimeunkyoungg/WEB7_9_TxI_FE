@@ -28,7 +28,7 @@ export function EventFilterSection({
   setCategoryFilter: (category: EventCategory | undefined) => void
 }) {
   return (
-    <section className="py-6 border-b border-gray-200">
+    <section className="py-6">
       <div className="container mx-auto px-4">
         <div className="space-y-4">
           <div>
