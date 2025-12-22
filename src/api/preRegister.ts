@@ -4,7 +4,7 @@ import type { PreRegister } from '@/types/preRegister'
 
 export const preRegisterApi = {
   getMyPreRegisters: async (): Promise<ApiResponse<PreRegister[]>> => {
-    const response = await apiClient.get<ApiResponse<PreRegister[]>>('/pre-register/me')
+    const response = await apiClient.get<ApiResponse<PreRegister[]>>('/pre-registers/me')
 
     if (response.data.status === '401 UNAUTHORIZED') {
       throw Error(response.data.message)
