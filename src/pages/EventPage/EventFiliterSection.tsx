@@ -3,8 +3,9 @@ import type { EventCategory, EventStatus } from '@/types/event'
 
 const EVENT_STATUS_MAP: Record<EventStatus, string> = {
   READY: '준비중',
-  PRE_OPEN: '예매예정',
-  QUEUE_READY: '대기중',
+  PRE_OPEN: '사전등록',
+  PRE_CLOSED: '사전 등록 마감',
+  QUEUE_READY: '대기',
   OPEN: '예매중',
   CLOSED: '마감',
 }
@@ -27,7 +28,7 @@ export function EventFilterSection({
   setCategoryFilter: (category: EventCategory | undefined) => void
 }) {
   return (
-    <section className="py-6 border-b border-gray-200">
+    <section className="py-6">
       <div className="container mx-auto px-4">
         <div className="space-y-4">
           <div>

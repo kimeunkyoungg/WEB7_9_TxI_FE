@@ -1,4 +1,10 @@
-export type EventStatus = 'READY' | 'PRE_OPEN' | 'QUEUE_READY' | 'OPEN' | 'CLOSED'
+export type EventStatus =
+  | 'READY'
+  | 'PRE_OPEN'
+  | 'PRE_CLOSED'
+  | 'QUEUE_READY'
+  | 'OPEN'
+  | 'CLOSED'
 export type EventCategory = 'CONCERT' | 'POPUP' | 'DROP'
 
 export interface Event {
