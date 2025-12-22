@@ -6,11 +6,15 @@ import { seatMap, seatPrices } from '@/components/SeatMap/constants'
 import type { SeatSection } from '@/components/SeatMap/types'
 import { formatSeatLabel } from '@/utils/seatFormatter'
 import { calculateTotalPrice } from '@/utils/priceCalculator'
+import { seatsApi } from '@/api/seats'
+import { useMutation } from '@tanstack/react-query'
 import { AlertCircle, ChevronRight, Users } from 'lucide-react'
+import { toast } from 'sonner'
 import { occupiedSeats } from '../constants'
 import type { PurchaseStepProps } from '../types'
 
 export function PurchaseStep({
+  eventId,
   selectedSeats,
   setSelectedSeats,
   selectedSection,
@@ -19,17 +23,49 @@ export function PurchaseStep({
   seconds,
   onProceed,
 }: PurchaseStepProps) {
+  const selectSeatMutation = useMutation({
+    mutationFn: ({ seatId }: { seatId: string }) => seatsApi.selectSeat(eventId, seatId),
+  })
+
+  const deselectSeatMutation = useMutation({
+    mutationFn: ({ seatId }: { seatId: string }) => seatsApi.deselectSeat(eventId, seatId),
+  })
+
   const handleSeatClick = (seatId: string) => {
     if (occupiedSeats.has(seatId)) return
 
-    setSelectedSeats((prev) => {
-      if (prev.includes(seatId)) {
-        return prev.filter((id) => id !== seatId)
-      } else if (prev.length < 1) {
-        return [...prev, seatId]
+    const isSelected = selectedSeats.includes(seatId)
+
+    if (isSelected) {
+      deselectSeatMutation.mutate(
+        { seatId },
+        {
+          onSuccess: () => {
+            setSelectedSeats((prev: string[]) => prev.filter((id) => id !== seatId))
+          },
+          onError: (error) => {
+            toast.error(error.message)
+          },
+        },
+      )
+    } else {
+      if (selectedSeats.length >= 1) {
+        toast.error('최대 1석까지만 선택 가능합니다.')
+        return
       }
-      return prev
-    })
+
+      selectSeatMutation.mutate(
+        { seatId },
+        {
+          onSuccess: () => {
+            setSelectedSeats((prev: string[]) => [...prev, seatId])
+          },
+          onError: (error) => {
+            toast.error(error.message)
+          },
+        },
+      )
+    }
   }
 
   const totalPrice = calculateTotalPrice(selectedSeats)
@@ -62,7 +98,7 @@ export function PurchaseStep({
               <h2 className="text-xl font-bold">구역 선택</h2>
             </div>
             <div className="flex gap-2">
-              {(Object.entries(seatMap) as [SeatSection, typeof seatMap[SeatSection]][]).map(
+              {(Object.entries(seatMap) as [SeatSection, (typeof seatMap)[SeatSection]][]).map(
                 ([key, section]) => (
                   <Button
                     key={key}
@@ -106,10 +142,7 @@ export function PurchaseStep({
                       const price = seatPrices[section]
 
                       return (
-                        <div
-                          key={seatId}
-                          className="flex items-center justify-between text-sm"
-                        >
+                        <div key={seatId} className="flex items-center justify-between text-sm">
                           <span className="font-semibold">{formatSeatLabel(seatId)}</span>
                           <span className="text-gray-600">{price.toLocaleString()}원</span>
                         </div>

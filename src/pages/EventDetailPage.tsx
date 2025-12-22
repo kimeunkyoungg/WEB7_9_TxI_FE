@@ -6,26 +6,19 @@ import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
 import { Progress } from '@/components/ui/Progress'
 import { useAuthStore } from '@/stores/authStore'
+import type { EventStatus } from '@/types/event'
 import { formatDateTime, formatPriceRange } from '@/utils/format'
 import { getStatusText } from '@/utils/getStatusText'
 import { useMutation, useQuery, useQueryClient, useSuspenseQuery } from '@tanstack/react-query'
-import { Link, useParams } from '@tanstack/react-router'
+import { Link, useNavigate, useParams } from '@tanstack/react-router'
 import { ArrowLeft, Calendar, Clock, MapPin, Shield, Tag } from 'lucide-react'
 import { toast } from 'sonner'
-
-// 이벤트 상태: READY(준비중), PRE_OPEN(사전등록 가능), PRE_CLOSED(사전등록 완료), QUEUE_READY(대기열 준비), OPEN(티켓팅 시작), CLOSED(이벤트 종료)
-
-// READY - 이벤트는 OPEN
-// PRE_OPEN - 사전등록 가능
-// PRE_CLOSED - 사전등록 완료
-// QUEUE_READY - 대기열 준비
-// OPEN - 티켓팅 시작
-// CLOSED - 이벤트 종료
 
 export default function EventDetailPage() {
   const { id } = useParams({ from: '/events/$id' })
   const { isAuthenticated } = useAuthStore()
   const queryClient = useQueryClient()
+  const navigate = useNavigate()
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false)
 
   const { data } = useSuspenseQuery({
@@ -44,8 +37,12 @@ export default function EventDetailPage() {
     enabled: isAuthenticated,
   })
 
-  const preRegisterMutation = useMutation({
+  const createPreRegisterMutation = useMutation({
     mutationFn: () => eventsApi.createPreRegister(id),
+  })
+
+  const deletePreRegisterMutation = useMutation({
+    mutationFn: () => eventsApi.deletePreRegister(id),
   })
 
   const event = data.data
@@ -57,23 +54,84 @@ export default function EventDetailPage() {
   const preCloseDateTime = formatDateTime(event.preCloseAt)
 
   const handlePreRegister = () => {
-    // TODOS: 이미 사전등록 완료되어있으면 호출하는 주소를 /api/v1/events/{eventId}/pre-registers delete 요청으로 변경하기
     if (!isAuthenticated) {
       toast.error('로그인 후 이용해주세요.')
       return
     }
 
-    preRegisterMutation.mutate(undefined, {
-      onSuccess: () => {
-        setIsSuccessModalOpen(true)
-        queryClient.invalidateQueries({ queryKey: ['event', id, 'pre-register-status'] })
-        queryClient.invalidateQueries({ queryKey: ['event', id, 'pre-register-count'] })
-      },
-      onError: (error) => {
-        toast.error(error.message)
-      },
-    })
+    if (isRegistered) {
+      deletePreRegisterMutation.mutate(undefined, {
+        onSuccess: () => {
+          toast.success('사전 등록이 취소되었습니다.')
+          queryClient.invalidateQueries({ queryKey: ['event', id, 'pre-register-status'] })
+          queryClient.invalidateQueries({ queryKey: ['event', id, 'pre-register-count'] })
+        },
+        onError: (error) => {
+          toast.error(error.message)
+        },
+      })
+    } else {
+      createPreRegisterMutation.mutate(undefined, {
+        onSuccess: () => {
+          setIsSuccessModalOpen(true)
+          queryClient.invalidateQueries({ queryKey: ['event', id, 'pre-register-status'] })
+          queryClient.invalidateQueries({ queryKey: ['event', id, 'pre-register-count'] })
+        },
+        onError: (error) => {
+          toast.error(error.message)
+        },
+      })
+    }
   }
+
+  const handleTicketing = () => {
+    navigate({ to: `/queue/${id}` })
+  }
+
+  const getButtonConfig = (status: EventStatus) => {
+    switch (status) {
+      case 'READY':
+        return {
+          text: '준비중',
+          disabled: true,
+          onClick: () => {},
+        }
+      case 'PRE_OPEN':
+        return {
+          text: isRegistered ? '사전등록 취소' : '사전 등록하기',
+          disabled:
+            createPreRegisterMutation.isPending || deletePreRegisterMutation.isPending,
+          onClick: handlePreRegister,
+        }
+      case 'PRE_CLOSED':
+      case 'QUEUE_READY':
+        return {
+          text: '사전 등록 마감',
+          disabled: true,
+          onClick: () => {},
+        }
+      case 'OPEN':
+        return {
+          text: '티켓팅 입장',
+          disabled: false,
+          onClick: handleTicketing,
+        }
+      case 'CLOSED':
+        return {
+          text: '마감',
+          disabled: true,
+          onClick: () => {},
+        }
+      default:
+        return {
+          text: '알 수 없음',
+          disabled: true,
+          onClick: () => {},
+        }
+    }
+  }
+
+  const buttonConfig = getButtonConfig(event.status)
 
   return (
     <>
@@ -172,14 +230,12 @@ export default function EventDetailPage() {
               <Button
                 className="w-full mb-3"
                 size="lg"
-                onClick={handlePreRegister}
-                disabled={preRegisterMutation.isPending}
+                onClick={buttonConfig.onClick}
+                disabled={buttonConfig.disabled}
               >
-                {preRegisterMutation.isPending
+                {createPreRegisterMutation.isPending || deletePreRegisterMutation.isPending
                   ? '처리 중...'
-                  : isRegistered
-                    ? '사전등록 취소'
-                    : '사전 등록하기'}
+                  : buttonConfig.text}
               </Button>
               <Button variant="outline" className="w-full">
                 알림 받기

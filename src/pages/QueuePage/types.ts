@@ -22,6 +22,7 @@ export interface ReadyStepProps {
 }
 
 export interface PurchaseStepProps {
+  eventId: string
   selectedSeats: string[]
   setSelectedSeats: (seats: string[]) => void
   selectedSection: SeatSection

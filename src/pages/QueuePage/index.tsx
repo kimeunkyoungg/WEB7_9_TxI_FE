@@ -106,6 +106,7 @@ export default function QueuePage() {
 
         {step === 'purchase' && (
           <PurchaseStep
+            eventId={id}
             selectedSeats={selectedSeats}
             setSelectedSeats={setSelectedSeats}
             selectedSection={selectedSection}
