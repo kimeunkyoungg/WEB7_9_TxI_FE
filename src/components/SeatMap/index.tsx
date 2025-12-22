@@ -1,24 +1,57 @@
 import { Card } from '@/components/ui/Card'
 import { cn } from '@/lib/utils'
-import { seatMap } from './constants'
 import type { SeatMapProps } from './types'
 
 export function SeatMap({
-  section,
-  selectedSeats,
-  occupiedSeats,
+  seats,
+  selectedGrade,
+  selectedSeatIds,
   onSeatClick,
   maxSeats = 1,
 }: SeatMapProps) {
-  const config = seatMap[section]
+  const gradeSeats = seats.filter((seat) => seat.grade === selectedGrade)
 
-  const handleSeatClick = (seatId: string) => {
-    if (occupiedSeats.has(seatId)) return
+  const parseSeatCode = (seatCode: string) => {
+    const match = seatCode.match(/^([A-Z]+)(\d+)$/)
+    if (!match) return { row: '', number: 0 }
+    return { row: match[1], number: parseInt(match[2], 10) }
+  }
 
-    const isSelected = selectedSeats.includes(seatId)
-    if (!isSelected && selectedSeats.length >= maxSeats) return
+  const seatsByRow = gradeSeats.reduce(
+    (acc, seat) => {
+      const { row } = parseSeatCode(seat.seatCode)
+      if (!acc[row]) acc[row] = []
+      acc[row].push(seat)
+      return acc
+    },
+    {} as Record<string, typeof gradeSeats>,
+  )
+
+  const sortedRows = Object.keys(seatsByRow).sort()
+
+  sortedRows.forEach((row) => {
+    seatsByRow[row].sort((a, b) => {
+      const aNum = parseSeatCode(a.seatCode).number
+      const bNum = parseSeatCode(b.seatCode).number
+      return aNum - bNum
+    })
+  })
+
+  const handleSeatClick = (seatId: number, seatStatus: string) => {
+    if (seatStatus !== 'AVAILABLE') return
+
+    const isSelected = selectedSeatIds.includes(seatId)
+    if (!isSelected && selectedSeatIds.length >= maxSeats) return
 
     onSeatClick(seatId)
+  }
+
+  if (gradeSeats.length === 0) {
+    return (
+      <Card className="p-6">
+        <div className="text-center py-12 text-gray-600">좌석 정보가 없습니다</div>
+      </Card>
+    )
   }
 
   return (
@@ -29,21 +62,19 @@ export function SeatMap({
         </div>
 
         <div className="space-y-3">
-          {Array.from({ length: config.rows }).map((_, rowIdx) => (
-            <div key={rowIdx} className="flex items-center gap-2">
-              <div className="w-8 text-sm text-gray-600 text-center">
-                {String.fromCharCode(65 + rowIdx)}
-              </div>
+          {sortedRows.map((row) => (
+            <div key={row} className="flex items-center gap-2">
+              <div className="w-8 text-sm text-gray-600 text-center">{row}</div>
               <div className="flex-1 flex justify-center gap-2">
-                {Array.from({ length: config.seatsPerRow }).map((_, seatIdx) => {
-                  const seatId = `${section}-${rowIdx}-${seatIdx}`
-                  const isOccupied = occupiedSeats.has(seatId)
-                  const isSelected = selectedSeats.includes(seatId)
+                {seatsByRow[row].map((seat) => {
+                  const { number } = parseSeatCode(seat.seatCode)
+                  const isOccupied = seat.seatStatus !== 'AVAILABLE'
+                  const isSelected = selectedSeatIds.includes(seat.id)
 
                   return (
                     <button
-                      key={seatIdx}
-                      onClick={() => handleSeatClick(seatId)}
+                      key={seat.id}
+                      onClick={() => handleSeatClick(seat.id, seat.seatStatus)}
                       disabled={isOccupied}
                       className={cn(
                         'w-8 h-8 rounded-t-lg border-2 text-xs font-semibold transition-all',
@@ -54,9 +85,9 @@ export function SeatMap({
                           'bg-white border-gray-300 hover:border-blue-600 hover:bg-blue-50 cursor-pointer',
                         isSelected && 'bg-blue-600 border-blue-600 text-white scale-110',
                       )}
-                      title={isOccupied ? '선택 불가' : `${seatIdx + 1}번`}
+                      title={isOccupied ? '선택 불가' : `${number}번`}
                     >
-                      {seatIdx + 1}
+                      {number}
                     </button>
                   )
                 })}

@@ -2,15 +2,10 @@ import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
 import { Separator } from '@/components/ui/Separator'
 import { SeatMap } from '@/components/SeatMap'
-import { seatMap, seatPrices } from '@/components/SeatMap/constants'
-import type { SeatSection } from '@/components/SeatMap/types'
-import { formatSeatLabel } from '@/utils/seatFormatter'
-import { calculateTotalPrice } from '@/utils/priceCalculator'
 import { seatsApi } from '@/api/seats'
-import { useMutation } from '@tanstack/react-query'
+import { useMutation, useSuspenseQuery } from '@tanstack/react-query'
 import { AlertCircle, ChevronRight, Users } from 'lucide-react'
 import { toast } from 'sonner'
-import { occupiedSeats } from '../constants'
 import type { PurchaseStepProps } from '../types'
 
 export function PurchaseStep({
@@ -23,6 +18,15 @@ export function PurchaseStep({
   seconds,
   onProceed,
 }: PurchaseStepProps) {
+  const { data: seatsData } = useSuspenseQuery({
+    queryKey: ['seats', eventId],
+    queryFn: () => seatsApi.getSeats(eventId),
+  })
+
+  const seats = seatsData.data
+
+  const grades = Array.from(new Set(seats.map((seat) => seat.grade)))
+
   const selectSeatMutation = useMutation({
     mutationFn: ({ seatId }: { seatId: string }) => seatsApi.selectSeat(eventId, seatId),
   })
@@ -31,17 +35,18 @@ export function PurchaseStep({
     mutationFn: ({ seatId }: { seatId: string }) => seatsApi.deselectSeat(eventId, seatId),
   })
 
-  const handleSeatClick = (seatId: string) => {
-    if (occupiedSeats.has(seatId)) return
+  const handleSeatClick = (seatId: number) => {
+    const seat = seats.find((s) => s.id === seatId)
+    if (!seat || seat.seatStatus !== 'AVAILABLE') return
 
     const isSelected = selectedSeats.includes(seatId)
 
     if (isSelected) {
       deselectSeatMutation.mutate(
-        { seatId },
+        { seatId: String(seatId) },
         {
           onSuccess: () => {
-            setSelectedSeats((prev: string[]) => prev.filter((id) => id !== seatId))
+            setSelectedSeats((prev: number[]) => prev.filter((id) => id !== seatId))
           },
           onError: (error) => {
             toast.error(error.message)
@@ -55,10 +60,10 @@ export function PurchaseStep({
       }
 
       selectSeatMutation.mutate(
-        { seatId },
+        { seatId: String(seatId) },
         {
           onSuccess: () => {
-            setSelectedSeats((prev: string[]) => [...prev, seatId])
+            setSelectedSeats((prev: number[]) => [...prev, seatId])
           },
           onError: (error) => {
             toast.error(error.message)
@@ -68,7 +73,10 @@ export function PurchaseStep({
     }
   }
 
-  const totalPrice = calculateTotalPrice(selectedSeats)
+  const totalPrice = selectedSeats.reduce((sum, seatId) => {
+    const seat = seats.find((s) => s.id === seatId)
+    return sum + (seat?.price || 0)
+  }, 0)
 
   return (
     <div className="max-w-6xl mx-auto">
@@ -97,26 +105,24 @@ export function PurchaseStep({
               <Users className="w-5 h-5 text-blue-600" />
               <h2 className="text-xl font-bold">구역 선택</h2>
             </div>
-            <div className="flex gap-2">
-              {(Object.entries(seatMap) as [SeatSection, (typeof seatMap)[SeatSection]][]).map(
-                ([key, section]) => (
-                  <Button
-                    key={key}
-                    variant={selectedSection === key ? 'default' : 'outline'}
-                    onClick={() => setSelectedSection(key)}
-                    className="flex-1"
-                  >
-                    {section.label}
-                  </Button>
-                ),
-              )}
+            <div className="flex gap-2 flex-wrap">
+              {grades.map((grade) => (
+                <Button
+                  key={grade}
+                  variant={selectedSection === grade ? 'default' : 'outline'}
+                  onClick={() => setSelectedSection(grade)}
+                  className="flex-1"
+                >
+                  {grade}
+                </Button>
+              ))}
             </div>
           </Card>
 
           <SeatMap
-            section={selectedSection}
-            selectedSeats={selectedSeats}
-            occupiedSeats={occupiedSeats}
+            seats={seats}
+            selectedGrade={selectedSection}
+            selectedSeatIds={selectedSeats}
             onSeatClick={handleSeatClick}
             maxSeats={1}
           />
@@ -138,13 +144,15 @@ export function PurchaseStep({
                 {selectedSeats.length > 0 ? (
                   <div className="space-y-2">
                     {selectedSeats.map((seatId) => {
-                      const section = seatId.split('-')[0] as SeatSection
-                      const price = seatPrices[section]
+                      const seat = seats.find((s) => s.id === seatId)
+                      if (!seat) return null
 
                       return (
                         <div key={seatId} className="flex items-center justify-between text-sm">
-                          <span className="font-semibold">{formatSeatLabel(seatId)}</span>
-                          <span className="text-gray-600">{price.toLocaleString()}원</span>
+                          <span className="font-semibold">
+                            {seat.grade} - {seat.seatCode}
+                          </span>
+                          <span className="text-gray-600">{seat.price.toLocaleString()}원</span>
                         </div>
                       )
                     })}

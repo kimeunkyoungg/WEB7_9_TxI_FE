@@ -1,4 +1,3 @@
-import type { SeatSection } from '@/components/SeatMap/types'
 import type { Dispatch, SetStateAction } from 'react'
 
 export type QueueStep = 'waiting' | 'ready' | 'purchase' | 'payment'
@@ -26,17 +25,18 @@ export interface ReadyStepProps {
 
 export interface PurchaseStepProps {
   eventId: string
-  selectedSeats: string[]
-  setSelectedSeats: Dispatch<SetStateAction<string[]>>
-  selectedSection: SeatSection
-  setSelectedSection: Dispatch<SetStateAction<SeatSection>>
+  selectedSeats: number[]
+  setSelectedSeats: Dispatch<SetStateAction<number[]>>
+  selectedSection: string
+  setSelectedSection: Dispatch<SetStateAction<string>>
   minutes: number
   seconds: number
   onProceed: () => void
 }
 
 export interface PaymentStepProps {
-  selectedSeats: string[]
+  eventId: string
+  selectedSeats: number[]
   paymentMethod: string
   setPaymentMethod: Dispatch<SetStateAction<string>>
   agreedTerms: boolean

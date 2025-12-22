@@ -4,7 +4,6 @@ import { useSuspenseQuery } from '@tanstack/react-query'
 import { queueApi } from '@/api/queue'
 import { PaymentSuccessModal } from '@/components/PaymentSuccessModal'
 import { useQueueWebSocket } from '@/hooks/useQueueWebSocket'
-import type { SeatSection } from '@/components/SeatMap/types'
 import { QueueHeader } from './components/QueueHeader'
 import { WaitingStep } from './components/WaitingStep'
 import { ReadyStep } from './components/ReadyStep'
@@ -41,8 +40,8 @@ export default function QueuePage() {
   }
 
   const [step, setStep] = useState<QueueStep>(getInitialStep())
-  const [selectedSeats, setSelectedSeats] = useState<string[]>([])
-  const [selectedSection, setSelectedSection] = useState<SeatSection>('r')
+  const [selectedSeats, setSelectedSeats] = useState<number[]>([])
+  const [selectedSection, setSelectedSection] = useState<string>('VIP')
   const [paymentMethod, setPaymentMethod] = useState('card')
   const [isProcessing, setIsProcessing] = useState(false)
   const [agreedTerms, setAgreedTerms] = useState(false)
@@ -153,6 +152,7 @@ export default function QueuePage() {
 
         {step === 'payment' && (
           <PaymentStep
+            eventId={id}
             selectedSeats={selectedSeats}
             paymentMethod={paymentMethod}
             setPaymentMethod={setPaymentMethod}
@@ -169,6 +169,7 @@ export default function QueuePage() {
       <PaymentSuccessModal
         open={showSuccessModal}
         onOpenChange={setShowSuccessModal}
+        eventId={id}
         selectedSeats={selectedSeats}
       />
     </div>

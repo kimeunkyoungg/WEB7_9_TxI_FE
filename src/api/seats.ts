@@ -1,6 +1,15 @@
 import { apiClient } from '@/lib/axios'
 import type { ApiResponse } from '@/types/api'
 
+export interface Seat {
+  id: number
+  eventId: number
+  seatCode: string
+  grade: string
+  price: number
+  seatStatus: 'AVAILABLE' | 'SOLD' | 'RESERVED'
+}
+
 export interface SeatSelectResponse {
   ticketId: number
   eventId: number
@@ -13,6 +22,20 @@ export interface SeatSelectResponse {
 }
 
 export const seatsApi = {
+  getSeats: async (eventId: string): Promise<ApiResponse<Seat[]>> => {
+    const response = await apiClient.get<ApiResponse<Seat[]>>(`/events/${eventId}/seats`)
+
+    if (response.data.status === '400 BAD_REQUEST') {
+      throw Error(response.data.message)
+    }
+
+    if (response.data.status === '500 INTERNAL_SERVER_ERROR') {
+      throw Error(response.data.message)
+    }
+
+    return response.data
+  },
+
   selectSeat: async (
     eventId: string,
     seatId: string,

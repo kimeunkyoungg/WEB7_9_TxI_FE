@@ -1,16 +1,9 @@
-export type SeatSection = 'vip' | 'r' | 's' | 'a'
-
-export interface SeatMapConfig {
-  rows: number
-  seatsPerRow: number
-  label: string
-  color: string
-}
+import type { Seat } from '@/api/seats'
 
 export interface SeatMapProps {
-  section: SeatSection
-  selectedSeats: string[]
-  occupiedSeats: Set<string>
-  onSeatClick: (seatId: string) => void
+  seats: Seat[]
+  selectedGrade: string
+  selectedSeatIds: number[]
+  onSeatClick: (seatId: number) => void
   maxSeats?: number
 }

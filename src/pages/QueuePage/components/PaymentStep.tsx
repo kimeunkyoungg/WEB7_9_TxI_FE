@@ -5,12 +5,13 @@ import { PaymentMethods } from '@/components/PaymentForm/PaymentMethods'
 import { CardInfoForm } from '@/components/PaymentForm/CardInfoForm'
 import { BuyerInfoForm } from '@/components/PaymentForm/BuyerInfoForm'
 import { TermsAgreement } from '@/components/TermsAgreement'
-import { formatSeatLabel } from '@/utils/seatFormatter'
-import { calculateTotalPrice } from '@/utils/priceCalculator'
+import { seatsApi } from '@/api/seats'
+import { useSuspenseQuery } from '@tanstack/react-query'
 import { CheckCircle2, Lock } from 'lucide-react'
 import type { PaymentStepProps } from '../types'
 
 export function PaymentStep({
+  eventId,
   selectedSeats,
   paymentMethod,
   setPaymentMethod,
@@ -21,7 +22,17 @@ export function PaymentStep({
   isProcessing,
   onPayment,
 }: PaymentStepProps) {
-  const totalPrice = calculateTotalPrice(selectedSeats)
+  const { data: seatsData } = useSuspenseQuery({
+    queryKey: ['seats', eventId],
+    queryFn: () => seatsApi.getSeats(eventId),
+  })
+
+  const seats = seatsData.data
+
+  const totalPrice = selectedSeats.reduce((sum, seatId) => {
+    const seat = seats.find((s) => s.id === seatId)
+    return sum + (seat?.price || 0)
+  }, 0)
 
   return (
     <div className="max-w-5xl mx-auto">
@@ -60,11 +71,15 @@ export function PaymentStep({
               <div>
                 <div className="text-sm text-gray-600 mb-2">선택한 좌석</div>
                 <div className="space-y-1">
-                  {selectedSeats.map((seatId) => (
-                    <div key={seatId} className="text-sm font-medium">
-                      {formatSeatLabel(seatId)}
-                    </div>
-                  ))}
+                  {selectedSeats.map((seatId) => {
+                    const seat = seats.find((s) => s.id === seatId)
+                    if (!seat) return null
+                    return (
+                      <div key={seatId} className="text-sm font-medium">
+                        {seat.grade} - {seat.seatCode}
+                      </div>
+                    )
+                  })}
                 </div>
               </div>
 
