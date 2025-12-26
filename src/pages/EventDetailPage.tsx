@@ -1,4 +1,3 @@
-import { useState } from 'react'
 import { eventsApi } from '@/api/events'
 import { PreRegisterSuccessModal } from '@/components/PreRegisterSuccessModal'
 import { Badge } from '@/components/ui/Badge'
@@ -12,6 +11,7 @@ import { getStatusText } from '@/utils/getStatusText'
 import { useMutation, useQuery, useQueryClient, useSuspenseQuery } from '@tanstack/react-query'
 import { Link, useNavigate, useParams } from '@tanstack/react-router'
 import { ArrowLeft, Calendar, Clock, MapPin, Shield, Tag } from 'lucide-react'
+import { useState } from 'react'
 import { toast } from 'sonner'
 
 export default function EventDetailPage() {
@@ -256,11 +256,7 @@ export default function EventDetailPage() {
         </div>
       </div>
 
-      <PreRegisterSuccessModal
-        open={isSuccessModalOpen}
-        onOpenChange={setIsSuccessModalOpen}
-        eventTitle={event.title}
-      />
+      <PreRegisterSuccessModal open={isSuccessModalOpen} onOpenChange={setIsSuccessModalOpen} />
     </>
   )
 }
