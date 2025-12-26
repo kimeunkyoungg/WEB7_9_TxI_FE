@@ -42,13 +42,8 @@ export interface ConfirmPaymentResponse {
 }
 
 export const orderApi = {
-  createOrder: async (
-    request: CreateOrderRequest,
-  ): Promise<ApiResponse<CreateOrderResponse>> => {
-    const response = await apiClient.post<ApiResponse<CreateOrderResponse>>(
-      '/order',
-      request,
-    )
+  createOrder: async (request: CreateOrderRequest): Promise<ApiResponse<CreateOrderResponse>> => {
+    const response = await apiClient.post<ApiResponse<CreateOrderResponse>>('/order', request)
 
     if (response.data.status === '400 BAD_REQUEST') {
       throw Error(response.data.message)
@@ -69,7 +64,7 @@ export const orderApi = {
     request: ConfirmPaymentRequest,
   ): Promise<ApiResponse<ConfirmPaymentResponse>> => {
     const response = await apiClient.post<ApiResponse<ConfirmPaymentResponse>>(
-      '/payment/confirm',
+      '/payments/confirm',
       request,
     )
 
