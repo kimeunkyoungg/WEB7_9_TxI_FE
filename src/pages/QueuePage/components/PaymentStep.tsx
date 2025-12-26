@@ -13,6 +13,7 @@ import type { PaymentStepProps } from '../types'
 export function PaymentStep({
   eventId,
   selectedSeats,
+  orderData,
   paymentMethod,
   setPaymentMethod,
   agreedTerms,
@@ -29,10 +30,7 @@ export function PaymentStep({
 
   const seats = seatsData.data
 
-  const totalPrice = selectedSeats.reduce((sum, seatId) => {
-    const seat = seats.find((s) => s.id === seatId)
-    return sum + (seat?.price || 0)
-  }, 0)
+  const totalPrice = orderData.amount
 
   return (
     <div className="max-w-5xl mx-auto">

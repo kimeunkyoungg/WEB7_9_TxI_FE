@@ -11,36 +11,20 @@ import {
 import { Separator } from '@/components/ui/Separator'
 import { CheckCircle2, Ticket } from 'lucide-react'
 import { Link } from '@tanstack/react-router'
-import { seatsApi } from '@/api/seats'
-import { useSuspenseQuery } from '@tanstack/react-query'
+import type { ConfirmPaymentResponse } from '@/api/order'
 
 interface PaymentSuccessModalProps {
   open: boolean
   onOpenChange: (open: boolean) => void
-  eventId: string
-  selectedSeats: number[]
+  paymentData: ConfirmPaymentResponse
 }
 
 export function PaymentSuccessModal({
   open,
   onOpenChange,
-  eventId,
-  selectedSeats,
+  paymentData,
 }: PaymentSuccessModalProps) {
-  const { data: seatsData } = useSuspenseQuery({
-    queryKey: ['seats', eventId],
-    queryFn: () => seatsApi.getSeats(eventId),
-  })
-
-  const seats = seatsData.data
-
-  const totalPrice = selectedSeats.reduce((sum, seatId) => {
-    const seat = seats.find((s) => s.id === seatId)
-    return sum + (seat?.price || 0)
-  }, 0)
-
-  const orderNumber = `WF${Date.now().toString().slice(-10)}`
-  const orderDate = new Date().toLocaleString('ko-KR', {
+  const orderDate = new Date(paymentData.paidAt).toLocaleString('ko-KR', {
     year: 'numeric',
     month: '2-digit',
     day: '2-digit',
@@ -65,14 +49,16 @@ export function PaymentSuccessModal({
         <Card className="p-6 mt-4">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-xl font-bold">주문 정보</h2>
-            <Badge className="text-sm px-3 py-1 bg-gray-100 text-gray-800">결제완료</Badge>
+            <Badge className="text-sm px-3 py-1 bg-gray-100 text-gray-800">
+              {paymentData.orderStatus === 'PAID' ? '결제완료' : paymentData.orderStatus}
+            </Badge>
           </div>
 
           <div className="space-y-4 mb-6">
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <div className="text-sm text-gray-600 mb-1">주문번호</div>
-                <div className="font-semibold">{orderNumber}</div>
+                <div className="font-semibold">{paymentData.orderNumber}</div>
               </div>
               <div>
                 <div className="text-sm text-gray-600 mb-1">결제일시</div>
@@ -84,9 +70,9 @@ export function PaymentSuccessModal({
 
             <div>
               <div className="text-sm text-gray-600 mb-2">이벤트 정보</div>
-              <div className="font-bold text-lg mb-1">2025 서울 뮤직 페스티벌</div>
-              <div className="text-sm text-gray-600">2025년 3월 15일 (토) 19:00</div>
-              <div className="text-sm text-gray-600">서울 올림픽공원 체조경기장</div>
+              <div className="font-bold text-lg mb-1">{paymentData.eventTitle}</div>
+              <div className="text-sm text-gray-600">{paymentData.eventDate}</div>
+              <div className="text-sm text-gray-600">{paymentData.eventPlace}</div>
             </div>
 
             <Separator />
@@ -94,25 +80,18 @@ export function PaymentSuccessModal({
             <div>
               <div className="text-sm text-gray-600 mb-2">좌석 정보</div>
               <div className="space-y-2">
-                {selectedSeats.map((seatId, index) => {
-                  const seat = seats.find((s) => s.id === seatId)
-                  if (!seat) return null
-
-                  return (
-                    <div
-                      key={seatId}
-                      className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
-                    >
-                      <div>
-                        <div className="font-semibold">
-                          티켓 #{index + 1}: {seat.grade}
-                        </div>
-                        <div className="text-sm text-gray-600">{seat.seatCode}</div>
-                      </div>
-                      <div className="font-bold">{seat.price.toLocaleString()}원</div>
+                <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                  <div>
+                    <div className="font-semibold">
+                      티켓 #{paymentData.ticketId}: {paymentData.seatGrade}
                     </div>
-                  )
-                })}
+                    <div className="text-sm text-gray-600">{paymentData.seatCode}</div>
+                    <div className="text-xs text-gray-500 mt-1">
+                      상태: {paymentData.ticketStatus === 'ISSUED' ? '발급완료' : paymentData.ticketStatus}
+                    </div>
+                  </div>
+                  <div className="font-bold">{paymentData.seatPrice.toLocaleString()}원</div>
+                </div>
               </div>
             </div>
 
@@ -123,7 +102,7 @@ export function PaymentSuccessModal({
               <div className="space-y-2">
                 <div className="flex justify-between">
                   <span className="text-gray-600">티켓 금액</span>
-                  <span className="font-semibold">{totalPrice.toLocaleString()}원</span>
+                  <span className="font-semibold">{paymentData.amount.toLocaleString()}원</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600">예매 수수료</span>
@@ -131,13 +110,13 @@ export function PaymentSuccessModal({
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600">결제 수단</span>
-                  <span className="font-semibold">신용카드</span>
+                  <span className="font-semibold">{paymentData.paymentMethod}</span>
                 </div>
                 <Separator className="my-3" />
                 <div className="flex justify-between text-lg">
                   <span className="font-bold">최종 결제 금액</span>
                   <span className="font-bold text-blue-600 text-xl">
-                    {totalPrice.toLocaleString()}원
+                    {paymentData.amount.toLocaleString()}원
                   </span>
                 </div>
               </div>

@@ -36,10 +36,7 @@ export const seatsApi = {
     return response.data
   },
 
-  selectSeat: async (
-    eventId: string,
-    seatId: string,
-  ): Promise<ApiResponse<SeatSelectResponse>> => {
+  selectSeat: async (eventId: string, seatId: string): Promise<ApiResponse<SeatSelectResponse>> => {
     const response = await apiClient.post<ApiResponse<SeatSelectResponse>>(
       `/events/${eventId}/seats/${seatId}/select`,
     )
@@ -61,7 +58,7 @@ export const seatsApi = {
 
   deselectSeat: async (eventId: string, seatId: string): Promise<ApiResponse<string>> => {
     const response = await apiClient.delete<ApiResponse<string>>(
-      `/events/${eventId}/seats/${seatId}/select`,
+      `/events/${eventId}/seats/${seatId}/deselect`,
     )
 
     if (response.data.status === '400 BAD_REQUEST') {

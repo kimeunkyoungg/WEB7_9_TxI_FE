@@ -1,4 +1,5 @@
 import type { Dispatch, SetStateAction } from 'react'
+import type { CreateOrderResponse } from '@/api/order'
 
 export type QueueStep = 'waiting' | 'ready' | 'purchase' | 'payment'
 
@@ -37,6 +38,7 @@ export interface PurchaseStepProps {
 export interface PaymentStepProps {
   eventId: string
   selectedSeats: number[]
+  orderData: CreateOrderResponse
   paymentMethod: string
   setPaymentMethod: Dispatch<SetStateAction<string>>
   agreedTerms: boolean
@@ -44,5 +46,5 @@ export interface PaymentStepProps {
   agreedRefund: boolean
   setAgreedRefund: Dispatch<SetStateAction<boolean>>
   isProcessing: boolean
-  onPayment: () => void
+  onPayment: () => Promise<void>
 }

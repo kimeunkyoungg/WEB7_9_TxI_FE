@@ -1,14 +1,18 @@
-import { useEffect, useState } from 'react'
-import { useNavigate, useParams } from '@tanstack/react-router'
-import { useSuspenseQuery } from '@tanstack/react-query'
+import type { ConfirmPaymentResponse, CreateOrderResponse } from '@/api/order'
+import { orderApi } from '@/api/order'
 import { queueApi } from '@/api/queue'
+import { seatsApi } from '@/api/seats'
 import { PaymentSuccessModal } from '@/components/PaymentSuccessModal'
 import { useQueueWebSocket } from '@/hooks/useQueueWebSocket'
-import { QueueHeader } from './components/QueueHeader'
-import { WaitingStep } from './components/WaitingStep'
-import { ReadyStep } from './components/ReadyStep'
-import { PurchaseStep } from './components/PurchaseStep'
+import { useMutation, useSuspenseQuery } from '@tanstack/react-query'
+import { useNavigate, useParams } from '@tanstack/react-router'
+import { useEffect, useState } from 'react'
+import { toast } from 'sonner'
 import { PaymentStep } from './components/PaymentStep'
+import { PurchaseStep } from './components/PurchaseStep'
+import { QueueHeader } from './components/QueueHeader'
+import { ReadyStep } from './components/ReadyStep'
+import { WaitingStep } from './components/WaitingStep'
 import { useQueueTimer } from './hooks/useQueueTimer'
 import type { QueueStep } from './types'
 
@@ -19,6 +23,11 @@ export default function QueuePage() {
   const { data: queueData } = useSuspenseQuery({
     queryKey: ['queueStatus', id],
     queryFn: () => queueApi.getQueueStatus(id),
+  })
+
+  const { data: seatsData } = useSuspenseQuery({
+    queryKey: ['seats', id],
+    queryFn: () => seatsApi.getSeats(id),
   })
 
   const getInitialStep = (): QueueStep => {
@@ -47,6 +56,8 @@ export default function QueuePage() {
   const [agreedTerms, setAgreedTerms] = useState(false)
   const [agreedRefund, setAgreedRefund] = useState(false)
   const [showSuccessModal, setShowSuccessModal] = useState(false)
+  const [orderData, setOrderData] = useState<CreateOrderResponse | null>(null)
+  const [paymentResult, setPaymentResult] = useState<ConfirmPaymentResponse | null>(null)
 
   const {
     queuePosition,
@@ -62,6 +73,14 @@ export default function QueuePage() {
 
   const { minutes, seconds, start } = useQueueTimer(900, () => {
     navigate({ to: '/events' })
+  })
+
+  const createOrderMutation = useMutation({
+    mutationFn: orderApi.createOrder,
+  })
+
+  const confirmPaymentMutation = useMutation({
+    mutationFn: orderApi.confirmPayment,
   })
 
   useEffect(() => {
@@ -93,8 +112,35 @@ export default function QueuePage() {
     }
   }, [personalEvent, clearPersonalEvent, navigate, start])
 
-  const handlePurchase = () => {
-    setStep('payment')
+  const handlePurchase = async () => {
+    if (selectedSeats.length === 0) {
+      toast.error('좌석을 선택해주세요')
+      return
+    }
+
+    const seatId = selectedSeats[0]
+    const seat = seatsData.data.find((s) => s.id === seatId)
+    if (!seat) {
+      toast.error('좌석 정보를 찾을 수 없습니다')
+      return
+    }
+
+    createOrderMutation.mutate(
+      {
+        amount: seat.price,
+        eventId: Number(id),
+        seatId: seatId,
+      },
+      {
+        onSuccess: (response) => {
+          setOrderData(response.data)
+          setStep('payment')
+        },
+        onError: (error) => {
+          toast.error(error.message)
+        },
+      },
+    )
   }
 
   const handlePayment = async () => {
@@ -102,12 +148,31 @@ export default function QueuePage() {
       return
     }
 
+    if (!orderData) {
+      toast.error('주문 정보가 없습니다')
+      return
+    }
+
     setIsProcessing(true)
 
-    setTimeout(() => {
-      setIsProcessing(false)
-      setShowSuccessModal(true)
-    }, 2000)
+    confirmPaymentMutation.mutate(
+      {
+        orderId: orderData.orderId,
+        amount: orderData.amount,
+        paymentKey: `mock_payment_key_${orderData.orderKey}`,
+      },
+      {
+        onSuccess: (response) => {
+          setIsProcessing(false)
+          setPaymentResult(response.data)
+          setShowSuccessModal(true)
+        },
+        onError: (error) => {
+          setIsProcessing(false)
+          toast.error(error.message)
+        },
+      },
+    )
   }
 
   const currentPosition = queuePosition ?? queueData.data.queueRank
@@ -150,10 +215,11 @@ export default function QueuePage() {
           />
         )}
 
-        {step === 'payment' && (
+        {step === 'payment' && orderData && (
           <PaymentStep
             eventId={id}
             selectedSeats={selectedSeats}
+            orderData={orderData}
             paymentMethod={paymentMethod}
             setPaymentMethod={setPaymentMethod}
             agreedTerms={agreedTerms}
@@ -166,12 +232,11 @@ export default function QueuePage() {
         )}
       </main>
 
-      {showSuccessModal && (
+      {showSuccessModal && paymentResult && (
         <PaymentSuccessModal
           open={showSuccessModal}
           onOpenChange={setShowSuccessModal}
-          eventId={id}
-          selectedSeats={selectedSeats}
+          paymentData={paymentResult}
         />
       )}
     </div>
