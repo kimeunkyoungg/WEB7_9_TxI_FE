@@ -177,7 +177,7 @@ export default function MyPage() {
                 validators={{
                   onChange: ({ value }) => {
                     const result = updateUserFormSchema.shape.fullName.safeParse(value)
-                    return result.success ? undefined : result.error.message
+                    return result.success ? undefined : result.error.issues[0]?.message
                   },
                 }}
               >
@@ -207,7 +207,7 @@ export default function MyPage() {
                 validators={{
                   onChange: ({ value }) => {
                     const result = updateUserFormSchema.shape.nickname.safeParse(value)
-                    return result.success ? undefined : result.error.message
+                    return result.success ? undefined : result.error.issues[0]?.message
                   },
                 }}
               >
@@ -229,7 +229,7 @@ export default function MyPage() {
                 validators={{
                   onChange: ({ value }) => {
                     const result = updateUserFormSchema.shape.birthDate.safeParse(value)
-                    return result.success ? undefined : result.error.message
+                    return result.success ? undefined : result.error.issues[0]?.message
                   },
                 }}
               >
