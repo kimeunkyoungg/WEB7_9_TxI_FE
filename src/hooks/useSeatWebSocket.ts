@@ -26,7 +26,7 @@ export function useSeatWebSocket({ eventId, enabled = true }: UseSeatWebSocketPa
     const handleConnect = () => {
       setIsConnected(true)
 
-      const seatDestination = `/events/${eventId}/seats`
+      const seatDestination = `/topic/events/${eventId}/seats`
       wsClient.subscribe(seatDestination, (message) => {
         try {
           const event: SeatStatusChangeEvent = JSON.parse(message.body)
@@ -48,7 +48,7 @@ export function useSeatWebSocket({ eventId, enabled = true }: UseSeatWebSocketPa
     wsClient.connect(handleConnect, handleError)
 
     return () => {
-      wsClient.unsubscribe(`/events/${eventId}/seats`)
+      wsClient.unsubscribe(`/topic/events/${eventId}/seats`)
     }
   }, [enabled, isAuthenticated, accessToken, eventId])
 
