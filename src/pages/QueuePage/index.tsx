@@ -185,7 +185,7 @@ export default function QueuePage() {
   const currentPosition = queuePosition ?? queueData.data.queueRank
   const currentWaitingAhead = waitingAhead ?? queueData.data.waitingAhead 
   const currentEstimatedTime = estimatedWaitTime ?? queueData.data.estimatedWaitTime
-  const currentProgress = progress ?? queueData.data.progress
+  const currentProgress = progress != null ? progress : queueData.data.progress
 
   return (
     <div className="min-h-screen">

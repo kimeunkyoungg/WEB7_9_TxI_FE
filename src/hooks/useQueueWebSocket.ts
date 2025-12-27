@@ -14,7 +14,7 @@ export function useQueueWebSocket({ eventId, enabled = true }: UseQueueWebSocket
   const [queuePosition, setQueuePosition] = useState<number | null>(null)
   const [waitingAhead, setWaitingAhead] = useState<number | null>(null)
   const [estimatedWaitTime, setEstimatedWaitTime] = useState<number | null>(null)
-  const [progress, setProgress] = useState<number>(0)
+  const [progress, setProgress] = useState<number | null>(null)
   const [personalEvent, setPersonalEvent] = useState<QueuePersonalEvent | null>(null)
   const [isConnected, setIsConnected] = useState(false)
 
